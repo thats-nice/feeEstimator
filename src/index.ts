@@ -1,15 +1,25 @@
 import express = require('express');
 import dotenv = require('dotenv');
 
+import helmet from 'helmet';
+import {InfuraAccessor} from './infuraAccessor';
+
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT;
+const port: string | undefined = process.env.PORT;
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
+InfuraAccessor.startInfuraWS();
+
+app.use(helmet());
+
+app.get('/ethFeeEstimate', async (_req, res) => {
+  res.send({feeEstimate: 1});
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  if (port === undefined) {
+    throw new Error('Server port undefined.');
+  }
+  console.log(`Fee Estimator App listening on port ${port}`);
 });
