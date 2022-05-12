@@ -1,19 +1,19 @@
 import express = require('express');
-import dotenv = require('dotenv');
 
 import helmet from 'helmet';
-import {InfuraAccessor} from './infuraAccessor';
+import {InfuraWSAccessor} from './Infura/infuraWSAccessor';
 
-dotenv.config();
+import {config} from './config';
 
 const app = express();
-const port: string | undefined = process.env.PORT;
+const port: string | undefined = config.port;
+const apiVersion: number = 1;
 
-InfuraAccessor.startInfuraWS();
+InfuraWSAccessor.startInfuraWS();
 
 app.use(helmet());
 
-app.get('/ethFeeEstimate', async (_req, res) => {
+app.get(`/v${apiVersion}/ethFeeEstimate`, async (_req, res) => {
   res.send({feeEstimate: 1});
 });
 
