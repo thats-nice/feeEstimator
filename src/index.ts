@@ -14,7 +14,7 @@ InfuraWSAccessor.startInfuraWS();
 
 app.use(helmet());
 
-app.get(`/v${apiVersion}/ethFeeEstimate`, async (_req, res) => {
+app.get(`/v${apiVersion}/getFeeEstimate`, async (_req, res) => {
   res.send(FeeEstimator.getLastBlockFee());
 });
 
