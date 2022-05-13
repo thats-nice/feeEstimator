@@ -54,9 +54,7 @@ export class FeeEstimator {
     ) {
       return block.result.transactions;
     } else {
-      throw new Error(
-        `No valid transaction hash found in block. Block: ${JSON.parse(block)}.`
-      );
+      throw new Error('No valid transaction hash found in block.');
     }
   }
 
