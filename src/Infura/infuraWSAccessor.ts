@@ -31,7 +31,7 @@ export class InfuraWSAccessor {
     this.ws.on('message', async (data: any) => {
       const parsedMessage = JSON.parse(data);
       if (parsedMessage.method && parsedMessage.method === 'eth_subscription') {
-        console.log('New block found. Updating fee estimate.');
+        console.log('New block found.');
         await FeeEstimator.updateFeeEstimate(parsedMessage);
       }
     });

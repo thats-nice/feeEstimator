@@ -1,31 +1,36 @@
 import {InfuraAPIAccessor} from './Infura/infuraAPIAccessor';
-import {InfuraWSAccessor} from './Infura/infuraWSAccessor';
+
+interface blockFee {
+  blockNumber: string;
+  feeEstimate: number;
+}
 
 export class FeeEstimator {
-  public static feeEstimate: number = 0;
+  public static feeHistory: blockFee[] = [];
 
   public static async updateFeeEstimate(wsMessage: any): Promise<void> {
-    const latestBlockNumber: string = this.getLatestBlockNumber(wsMessage);
-    console.log(
-      '🚀 ~ file: feeEstimator.ts ~ line 9 ~ FeeEstimator ~ updateFeeEstimate ~ latestBlockNumber',
-      latestBlockNumber
-    );
+    const latestBlockNumber: string = this.extractLatestBlockNumber(wsMessage);
     const block: any = await InfuraAPIAccessor.getBlockByNumber(
       latestBlockNumber
     );
-    const transactionHashes: string[] = this.getTransactionHashes(block);
-    console.log(
-      '🚀 ~ file: feeEstimator.ts ~ line 15 ~ FeeEstimator ~ updateFeeEstimate ~ numOfHashes',
-      transactionHashes.length
-    );
+    const transactionHashes: string[] = this.extractTransactionHashes(block);
     const transactionBlocks: any[] = await this.getTransactionBlocks(
       transactionHashes
     );
 
-    transactionBlocks.map(txnBlock => console.log(txnBlock.result.blockNumber));
+    const fees: number[] = this.extractFees(transactionBlocks);
+    const averageBlockFee: number = this.calculateAverage(fees);
+
+    this.feeHistory.push({
+      blockNumber: latestBlockNumber,
+      feeEstimate: averageBlockFee,
+    });
+    console.log(
+      `Block number: ${latestBlockNumber}. Estimated fee: ${averageBlockFee}`
+    );
   }
 
-  public static getLatestBlockNumber(newHeadBlock: any): string {
+  public static extractLatestBlockNumber(newHeadBlock: any): string {
     if (
       newHeadBlock &&
       newHeadBlock.params &&
@@ -40,7 +45,7 @@ export class FeeEstimator {
     }
   }
 
-  public static getTransactionHashes(block: any): string[] {
+  public static extractTransactionHashes(block: any): string[] {
     if (
       block.result &&
       block.result.transactions &&
@@ -59,5 +64,36 @@ export class FeeEstimator {
       InfuraAPIAccessor.getTransactionBlock(txn)
     );
     return await Promise.all(getTransactionPromises);
+  }
+
+  public static extractFees(transactionBlocks: any[]): number[] {
+    let fees: number[] = [];
+
+    transactionBlocks.map(txn => {
+      if (txn.result && txn.result.effectiveGasPrice && txn.result.gasUsed)
+        fees.push(
+          Number(txn.result.effectiveGasPrice) * Number(txn.result.gasUsed)
+        );
+    });
+
+    return fees;
+  }
+
+  public static calculateAverage(fees: number[]): number {
+    return fees.reduce((x, y) => x + y, 0);
+  }
+
+  public static getLastBlockFee(): any {
+    if (this.feeHistory.length === 0) {
+      return {
+        message: 'No block found yet. Please wait a few seconds.',
+      };
+    } else {
+      const lastBlockFee = this.feeHistory[this.feeHistory.length - 1];
+      return {
+        last_block_number: lastBlockFee.blockNumber,
+        fee_estimate: lastBlockFee.feeEstimate,
+      };
+    }
   }
 }

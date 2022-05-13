@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import {InfuraWSAccessor} from './Infura/infuraWSAccessor';
 
 import {config} from './config';
+import {FeeEstimator} from './feeEstimator';
 
 const app = express();
 const port: string | undefined = config.port;
@@ -14,7 +15,7 @@ InfuraWSAccessor.startInfuraWS();
 app.use(helmet());
 
 app.get(`/v${apiVersion}/ethFeeEstimate`, async (_req, res) => {
-  res.send({feeEstimate: 1});
+  res.send(FeeEstimator.getLastBlockFee());
 });
 
 app.listen(port, () => {
