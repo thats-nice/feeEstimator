@@ -53,7 +53,9 @@ export class FeeEstimator {
     ) {
       return block.result.transactions;
     } else {
-      throw new Error('No valid transaction hash found in block.');
+      throw new Error(
+        `No valid transaction hash found in block. Block: ${JSON.parse(block)}.`
+      );
     }
   }
 
@@ -71,16 +73,19 @@ export class FeeEstimator {
 
     transactionBlocks.map(txn => {
       if (txn.result && txn.result.effectiveGasPrice && txn.result.gasUsed)
-        fees.push(
-          Number(txn.result.effectiveGasPrice) * Number(txn.result.gasUsed)
-        );
+        if (txn.result.contractAddress === null) {
+          // ignore non-base currency transfers
+          fees.push(
+            Number(txn.result.effectiveGasPrice) * Number(txn.result.gasUsed)
+          );
+        }
     });
 
     return fees;
   }
 
   public static calculateAverage(fees: number[]): number {
-    return fees.reduce((x, y) => x + y, 0);
+    return fees.reduce((x, y) => x + y, 0) / fees.length;
   }
 
   public static getLastBlockFee(): any {
@@ -89,11 +94,42 @@ export class FeeEstimator {
         message: 'No block found yet. Please wait a few seconds.',
       };
     } else {
+      this.sortFeeHistory();
       const lastBlockFee = this.feeHistory[this.feeHistory.length - 1];
+
+      let lastFiveBlocksFees: number = -1;
+      let lastThirtyBlocksFees: number = -1;
+
+      if (this.feeHistory.length >= 5) {
+        lastFiveBlocksFees = this.getLastBatchBlockFeesEstimate(5);
+      }
+
+      if (this.feeHistory.length >= 30) {
+        lastThirtyBlocksFees = this.getLastBatchBlockFeesEstimate(30);
+      }
+
       return {
         last_block_number: lastBlockFee.blockNumber,
         fee_estimate: lastBlockFee.feeEstimate,
+        last_five_block_fee_estimate:
+          lastFiveBlocksFees === -1 ? 'pending' : lastFiveBlocksFees,
+        last_thirty_block_fee_estimate:
+          lastThirtyBlocksFees === -1 ? 'pending' : lastThirtyBlocksFees,
       };
     }
+  }
+
+  private static sortFeeHistory() {
+    this.feeHistory.sort((x, y) => (x.blockNumber < y.blockNumber ? -1 : 1));
+  }
+
+  private static getLastBatchBlockFeesEstimate(numberOfBlocks: number): number {
+    const historyLength: number = this.feeHistory.length;
+    const lastBlockBatch: blockFee[] = this.feeHistory.slice(
+      historyLength - numberOfBlocks,
+      historyLength
+    );
+    lastBlockBatch.map(x => console.log(x.blockNumber, x.feeEstimate));
+    return this.calculateAverage(lastBlockBatch.map(x => x.feeEstimate));
   }
 }
