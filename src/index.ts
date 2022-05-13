@@ -15,7 +15,11 @@ InfuraWSAccessor.startInfuraWS();
 app.use(helmet());
 
 app.get(`/v${apiVersion}/getFeeEstimate`, async (_req, res) => {
-  res.send(FeeEstimator.getLastBlockFee());
+  try {
+    res.send(FeeEstimator.getLastBlockFee());
+  } catch (error) {
+    console.log(`Error occurred while attempting to get fee. ${error}`);
+  }
 });
 
 app.listen(port, () => {

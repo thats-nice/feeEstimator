@@ -32,7 +32,7 @@ export class InfuraAPIAccessor {
     }
   }
 
-  public static async getTransactionBlock(
+  public static async getTransactionReceipt(
     transactionHash: string
   ): Promise<any> {
     const data = {

@@ -14,17 +14,18 @@ export class FeeEstimator {
       latestBlockNumber
     );
     const transactionHashes: string[] = this.extractTransactionHashes(block);
-    const transactionBlocks: any[] = await this.getTransactionBlocks(
+    const transactionReceipts: any[] = await this.getTransactionReceipts(
       transactionHashes
     );
 
-    const fees: number[] = this.extractFees(transactionBlocks);
+    const fees: number[] = this.extractFees(transactionReceipts);
     const averageBlockFee: number = this.calculateAverage(fees);
 
     this.feeHistory.push({
       blockNumber: latestBlockNumber,
       feeEstimate: averageBlockFee,
     });
+
     console.log(
       `Block number: ${latestBlockNumber}. Estimated fee: ${averageBlockFee}`
     );
@@ -59,11 +60,11 @@ export class FeeEstimator {
     }
   }
 
-  public static async getTransactionBlocks(
+  public static async getTransactionReceipts(
     transactions: string[]
   ): Promise<any[]> {
     const getTransactionPromises: Promise<any>[] = transactions.map(txn =>
-      InfuraAPIAccessor.getTransactionBlock(txn)
+      InfuraAPIAccessor.getTransactionReceipt(txn)
     );
     return await Promise.all(getTransactionPromises);
   }
@@ -109,11 +110,11 @@ export class FeeEstimator {
       }
 
       return {
-        last_block_number: lastBlockFee.blockNumber,
-        fee_estimate: lastBlockFee.feeEstimate,
-        last_five_block_fee_estimate:
+        lastBlockNumber: lastBlockFee.blockNumber,
+        feeEstimate: lastBlockFee.feeEstimate,
+        lastFiveBlockFeeEstimate:
           lastFiveBlocksFees === -1 ? 'pending' : lastFiveBlocksFees,
-        last_thirty_block_fee_estimate:
+        lastThirtyBlockFeeEstimate:
           lastThirtyBlocksFees === -1 ? 'pending' : lastThirtyBlocksFees,
       };
     }
@@ -129,7 +130,6 @@ export class FeeEstimator {
       historyLength - numberOfBlocks,
       historyLength
     );
-    lastBlockBatch.map(x => console.log(x.blockNumber, x.feeEstimate));
     return this.calculateAverage(lastBlockBatch.map(x => x.feeEstimate));
   }
 }

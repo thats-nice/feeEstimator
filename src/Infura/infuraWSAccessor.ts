@@ -21,10 +21,8 @@ export class InfuraWSAccessor {
   });
 
   public static startInfuraWS() {
-    console.log('Starting Infura WS');
-
     this.ws.on('open', () => {
-      console.log('Websocket connection opened.');
+      console.log('Infura Websocket connection opened.');
       this.ws.send(this.subscribeToNewHeadsRequest);
     });
 
@@ -32,12 +30,16 @@ export class InfuraWSAccessor {
       const parsedMessage = JSON.parse(data);
       if (parsedMessage.method && parsedMessage.method === 'eth_subscription') {
         console.log('New block found.');
-        await FeeEstimator.updateFeeEstimate(parsedMessage);
+        try {
+          await FeeEstimator.updateFeeEstimate(parsedMessage);
+        } catch (error) {
+          console.log(`Error occurred while trying to update fee. ${error}`);
+        }
       }
     });
 
     this.ws.on('error', (error: any) => {
-      console.log(`Error: ${error}`);
+      console.log(`Infura WS Error: ${error}`);
     });
   }
 }
