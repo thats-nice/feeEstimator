@@ -84,6 +84,7 @@ export class FeeEstimator {
   }
 
   public static calculateAverage(fees: number[]): number {
+    if (fees.length === 0) return 0;
     return fees.reduce((x, y) => x + y, 0) / fees.length;
   }
 
