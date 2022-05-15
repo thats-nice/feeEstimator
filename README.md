@@ -16,7 +16,7 @@ The Fee Estimator provides an estimate of ETH transaction fees using the last bl
 
    This application makes use of the Infura API, available at https://infura.io/ . The `PROJECT_ID` is the PROJECT_ID provided when you have created a project on the Infura platform.
 
-1. Run `npm run build` to run application. The API endpoint is: `http://localhost:{PORT}/v1/getFeeEstimate` where `PORT` is defined in step `4` above.
+1. Run `npm run deploy` to run application. The API endpoint is: `http://localhost:{PORT}/v1/getFeeEstimate` where `PORT` is defined in step `4` above.
 
 # Testing
 
