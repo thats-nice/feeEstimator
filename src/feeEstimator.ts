@@ -1,4 +1,5 @@
 import {InfuraAPIAccessor} from './Infura/infuraAPIAccessor';
+import {config} from '../src/config';
 
 interface blockFee {
   blockNumber: string;
@@ -14,8 +15,13 @@ export class FeeEstimator {
       latestBlockNumber
     );
     const transactionHashes: string[] = this.extractTransactionHashes(block);
+
+    const transactions: any[] = await this.getTransactions(transactionHashes);
+    const filteredNonErc20Hashes: string[] =
+      this.filterNonErc20Transactions(transactions);
+
     const transactionReceipts: any[] = await this.getTransactionReceipts(
-      transactionHashes
+      filteredNonErc20Hashes
     );
 
     const fees: number[] = this.extractFees(transactionReceipts);
@@ -58,6 +64,32 @@ export class FeeEstimator {
     }
   }
 
+  public static async getTransactions(transactions: string[]): Promise<any[]> {
+    const getTransactionPromises: Promise<any>[] = transactions.map(txn =>
+      InfuraAPIAccessor.getTransactionByHash(txn)
+    );
+    return await Promise.all(getTransactionPromises);
+  }
+
+  public static filterNonErc20Transactions(transactions: any[]): string[] {
+    let nonEr20TxnHashes: string[] = [];
+    transactions.map(txn => {
+      if (txn.result && txn.result.input && txn.result.input !== null) {
+        const hexString: string = txn.result.input;
+
+        const dataNotIgnoredCode: boolean =
+          config.filterOutErc20TransactionTypes.indexOf(
+            hexString.substring(0, 10)
+          ) === -1;
+
+        if (dataNotIgnoredCode) {
+          nonEr20TxnHashes.push(txn.result.hash);
+        }
+      }
+    });
+    return nonEr20TxnHashes;
+  }
+
   public static async getTransactionReceipts(
     transactions: string[]
   ): Promise<any[]> {
@@ -71,13 +103,11 @@ export class FeeEstimator {
     let fees: number[] = [];
 
     transactionBlocks.map(txn => {
-      if (txn.result && txn.result.effectiveGasPrice && txn.result.gasUsed)
-        if (txn.result.contractAddress === null) {
-          // ignore non-base currency transfers
-          fees.push(
-            Number(txn.result.effectiveGasPrice) * Number(txn.result.gasUsed)
-          );
-        }
+      if (txn.result && txn.result.effectiveGasPrice && txn.result.gasUsed) {
+        fees.push(
+          Number(txn.result.effectiveGasPrice) * Number(txn.result.gasUsed)
+        );
+      }
     });
 
     return fees;

@@ -4,7 +4,7 @@
   "description": "Eth fee estimator using past block transactions fees",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc && node .\\build\\src\\index.js",
+    "deploy": "npx tsc && node .\\build\\src\\index.js",
     "test": "mocha -r ts-node/register 'tests/**/*.ts'",
     "lint": "gts lint",
     "clean": "gts clean",

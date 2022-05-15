@@ -91,24 +91,6 @@ describe('Fee Estimator', () => {
       expect(fees[0], 'Fees must equal the calculated value (1)').to.equal(0x2);
       expect(fees[1], 'Fees must equal the calculated value (2)').to.equal(0x8);
     });
-
-    it('should not include erc20 tokens when extracting fees', () => {
-      const transactionBlocks: any[] = [
-        {
-          result: {
-            contractAddress: 0x123,
-            effectiveGasPrice: 0x1,
-            gasUsed: 0x2,
-          },
-        },
-      ];
-
-      const fees: number[] = FeeEstimator.extractFees(transactionBlocks);
-      expect(
-        fees.length,
-        'Transaction block should not include fees that have contract address'
-      ).to.equal(0);
-    });
   });
 
   describe('calculate average', () => {
@@ -242,6 +224,29 @@ describe('Fee Estimator', () => {
         result.lastThirtyBlockFeeEstimate,
         'lastThirtyBlockFeeEstimate did not match'
       ).to.equal('pending');
+    });
+  });
+
+  describe('filterNonEr20Transactions', () => {
+    it('should return non-ER20 transactions', () => {
+      const transactionBlocks: any[] = [
+        {
+          result: {
+            input: '0xa9059cbb0000000000000000',
+          },
+        },
+        {
+          result: {
+            input: '0x',
+            hash: '123',
+          },
+        },
+      ];
+
+      const filtered: any[] =
+        FeeEstimator.filterNonErc20Transactions(transactionBlocks);
+      expect(filtered.length).to.equal(1);
+      expect(filtered[0]).to.equal('123');
     });
   });
 });

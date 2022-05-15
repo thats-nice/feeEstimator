@@ -51,4 +51,24 @@ export class InfuraAPIAccessor {
       );
     }
   }
+
+  public static async getTransactionByHash(
+    transactionHash: string
+  ): Promise<any> {
+    const data = {
+      jsonrpc: '2.0',
+      method: 'eth_getTransactionByHash',
+      params: [transactionHash],
+      id: 1,
+    };
+
+    const response = await axios.post(this.url, data, this.header);
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error(
+        `Could not retrieve transaction receipt for hash: ${transactionHash}. Status code: ${response.status}.`
+      );
+    }
+  }
 }
