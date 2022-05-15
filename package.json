@@ -1,15 +1,14 @@
 {
   "name": "feeestimator",
   "version": "1.0.0",
-  "description": "",
+  "description": "Eth fee estimator using past block transactions fees",
   "main": "index.js",
   "scripts": {
-    "dev": "npx tsc && node .\\build\\src\\index.js",
+    "build": "npx tsc && node .\\build\\src\\index.js",
     "test": "mocha -r ts-node/register 'tests/**/*.ts'",
     "lint": "gts lint",
     "clean": "gts clean",
-    "compile": "tsc",
-    "serve": "nodemon .\\src\\index.ts"
+    "dev": "npx tsc && nodemon .\\src\\index.ts"
   },
   "repository": {
     "type": "git",
